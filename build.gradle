@@ -9,14 +9,20 @@ buildscript {
         classpath 'com.gradleup.shadow:shadow-gradle-plugin:9.4.1'
     }
 }
-
-
-
 plugins {
-    id 'net.fabricmc.fabric-loom-remap' version '1.15-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom-remap' version "1.14-SNAPSHOT"
     id 'maven-publish'
+    id 'java-library'
 }
 
+repositories {
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    mavenLocal()
+    gradlePluginPortal()
+}
 apply plugin: 'com.gradleup.shadow'
 configurations {
     shadowMe
@@ -35,44 +41,30 @@ tasks.named('shadowJar', ShadowJar) {
 }
 version = project.mod_version
 group = project.maven_group
-
 base {
     archivesName = project.archives_base_name
 }
-
 loom {
     splitEnvironmentSourceSets()
 
     mods {
-        "no-combat-elytra" {
+        "${project.archives_base_name}" {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
         }
     }
 }
-
 fabricApi {
     configureDataGeneration {
         client = true
     }
 }
-
-repositories {
-    mavenLocal()
-}
-
 dependencies {
-    // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation "net.johnseagull:figmanager:${project.fig_version}"
-
-    shadowMe("net.johnseagull:figmanager:${project.fig_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-        exclude group: "net.fabricmc"
-    }
+    api "net.johnseagull:figmanager:${project.fig_version}"
 }
 tasks.named('remapJar') {
     dependsOn shadowJar
@@ -83,43 +75,38 @@ processResources {
     inputs.property "minecraft_version", project.minecraft_version
     inputs.property "loader_version", project.loader_version
     filteringCharset "UTF-8"
-
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
                 "loader_version": project.loader_version
     }
 }
-configurations.all {
-    resolutionStrategy.force "net.johnseagull:figmanager:${project.fig_version}:dev"
-}
-def targetJavaVersion = 21
-tasks.withType(JavaCompile).configureEach {
-    it.options.encoding = "UTF-8"
-}
-
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
 }
 
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = "UTF-8"
+}
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archives_base_name}" }
     }
 }
-
-// configure the maven publication
+tasks.register('devJar', Jar) {
+    archiveClassifier = 'dev'
+    from sourceSets.main.output
+}
+artifacts {
+    archives devJar
+}
 publishing {
     publications {
         create("mavenJava", MavenPublication) {
             artifactId = project.archives_base_name
             from components.java
+            artifact devJar
         }
-    }
-    repositories {
     }
 }
