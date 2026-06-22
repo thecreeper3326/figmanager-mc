@@ -6,7 +6,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.johnseagull.figManager.Fig;
 import net.johnseagull.figManager.FigGroup;
 import net.johnseagull.figManager.FigManager;
-import net.johnseagull.figManager.FigPacket;
+import net.johnseagull.figManagerMC.DividerFig;
+import net.johnseagull.figManagerMC.FigPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -135,9 +136,9 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
 
 
                 }
-                if (value instanceof Fig.DividerFig t) {
+                if (value instanceof DividerFig t) {
                     y += 22;
-                    if (field.getType() == Fig.DividerFig.class) {
+                    if (field.getType() == DividerFig.class) {
                         Style style = Style.EMPTY;
                         style = style.withColor(t.color).withBold(t.bold).withItalic(t.italic).withUnderlined(t.underline);
 

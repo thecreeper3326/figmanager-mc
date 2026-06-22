@@ -90,7 +90,8 @@ public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidg
     protected void updateWidgetNarration(NarrationElementOutput output) {
 
     }
-    public void shift(double amount) {
+    public boolean shift(double amount) {
+        boolean temp = true;
         if (offset >= 0 && amount < 0) {
             temp = false;
 
@@ -107,6 +108,7 @@ public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidg
         } else {
             temp = false;
         }
+        return !temp;
 
     }
 

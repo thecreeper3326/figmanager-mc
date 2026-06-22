@@ -36,7 +36,7 @@ tasks.named('shadowJar', ShadowJar) {
         project.configurations.shadowMe.collect { it.isDirectory() ? it : zipTree(it) }
     }
     archiveClassifier = 's'
-    relocate 'net.creeperdev.figManager', "net.creeperdev.${project.archives_base_name}.libs.figManager"
+    relocate 'net.johnseagull.figManager', "net.johnseagull.${project.archives_base_name}.libs.figManager"
     mergeServiceFiles()
 }
 version = project.mod_version
