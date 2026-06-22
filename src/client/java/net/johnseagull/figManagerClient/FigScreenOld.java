@@ -18,83 +18,49 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
-import java.awt.*;
 import java.lang.reflect.Field;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.Math.*;
 import static net.johnseagull.figManagerClient.FigManagerClient.clientLogger;
 import static org.apache.logging.log4j.core.util.ReflectionUtil.setFieldValue;
-
 @SuppressWarnings("unchecked")
-public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
-
-    private static final boolean CUSTOM_GRADIENT = true;
-    public static final boolean INVERT = false;
-    public static final boolean AUTO_GRADIENT = false;
-
-    private static int BACKGROUND_1 = 0xFF000000;
-    private static int BACKGROUND_2 = 0xAA000000;
-
-    private static int LIGHT_1 = 0xFF909090;
-    private static int LIGHT_2 = 0xFF505050;
-
-    private static int DARK_1 = 0xFF606060;
-    private static int DARK_2 = 0xFF303030;
-
-    private static int BORDER_1 = 0xFF151515;
-    private static int BORDER_2 = 0xFF000000;
-
-    private static int PANEL_1 = 0xFF303030;
-    private static int PANEL_2 = 0xFF101010;
-
-    private static int PANEL_DARK_1 = 0xAA000000;
-    private static int PANEL_DARK_2 = 0x55000000;
-
-    private static int TEXT = 0xFFFFFFFF;
-    private static int TEXT_INVALID = 0xFFFF2020;
-
-    private static int SCROLL_1 = 0xFF101010;
-    private static int SCROLL_2 = 0xFF202020;
-
-    private static int BAD_1 = 0xFF804040;
-    private static int BAD_2 = 0xFF503030;
-
-    private static int HEADER = 22;
-
-    public static int SPACING = 22;
-
-    public boolean HAS_SERVER = true;
-
+public class FigScreenOld {
+    /*
     public boolean canSave = true;
+
     public List<String> thingsKeepingYouFromSaving = new ArrayList<>();
-    private int howFarYouveScrolled = 0;
-    private int amountOfWidgetsOnScreen = 0;
-    private Field[] fieldsInFigs;
-    public List<T> coolListOfOptionWidgets = Lists.newArrayList();
+    private static int howFarYouveScrolled = 0;
+    private static int amountOfWidgetsOnScreen = 0;
+    private static Field[] fieldsInFigs;
+    private List<T> coolListOfOptionWidgets = Lists.newArrayList();
     private final Screen parent;
-    public int widgetWidth;
+    private int widthOfTheWidget;
     public float widthRatioFloat;
-    public Map<String, Map<String,Object>> tempOptions = new HashMap<>();
-    public Map<String, List<String>> tempStringList =  new HashMap<>();
-    public String name = "";
+    public static Map<String, Map<String,Object>> tempOptions = new HashMap<>();
+    public static Map<String, List<String>> tempStringList =  new HashMap<>();
+
+
+    FigButton save = new FigButton(width - 90, 7, 80, 20, Component.literal("Save"), btn -> {
+        try {
+            save(coolListOfOptionWidgets);
+        } catch (IllegalAccessException e) {
+            clientLogger.error(e.getMessage());
+        }
+    }, 0xFFA0A0A0, 0xFF505050, 0xFF151515, 0xFF000000, 2);
 
     private static final int tw = 6;
     int h;
     int a;
     FigBox thumb = new FigBox(
             width - 8,
-            HEADER,
+            35,
             6,
-            max(20, (int) ((double) height / a * h)), DARK_1, DARK_2, PANEL_DARK_1, PANEL_DARK_2, 1);
+            max(20, (int) ((double) height / a * h)), 0xFF606060, 0xFF303030, 0xFF202020, 0xFF000000, 1);
 
-    public FigScreen(Component title, float optionWidth, Object figs, Screen parent, boolean hasServer) {
-        super(title);
-        this.HAS_SERVER = hasServer;
+    public FigScreen(Component title, float optionWidth, Object figs, Screen parent) {
+        super(super(title));
         this.parent = parent;
         if (optionWidth < 1f) {
             widgetWidth = (int) (optionWidth * width);
@@ -104,202 +70,8 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         widthRatioFloat = optionWidth;
         Class<?> FIGCLASS = figs.getClass();
         fieldsInFigs = FIGCLASS.getDeclaredFields();
-        if (!CUSTOM_GRADIENT) {
-            BACKGROUND_2 = BACKGROUND_1;
-            LIGHT_2 = LIGHT_1;
-            BORDER_2 = BORDER_1;
-            DARK_2 = DARK_1;
-            PANEL_2 = PANEL_1;
-            BAD_2 = BAD_1;
-            PANEL_DARK_2 = PANEL_DARK_1;
-        }
-        if (AUTO_GRADIENT) {
-            BACKGROUND_2 = new Color(BACKGROUND_1, true).darker().getRGB();
-            LIGHT_2 = new Color(LIGHT_1, true).darker().getRGB();
-            BORDER_2 = new Color(BORDER_1, true).darker().getRGB();
-            DARK_2 = new Color(DARK_1, true).darker().getRGB();
-            PANEL_2 = new Color(PANEL_1, true).darker().getRGB();
-            BAD_2 = new Color(BAD_1, true).darker().getRGB();
-            PANEL_DARK_2 = new Color(PANEL_DARK_1, true).darker().getRGB();
-        }
     }
 
-    public void addWidget(String name, Fig fig, int x, int y, int w, int h) {
-        if (!fig.rendered) {
-            if (fig.widgetType.equals("box")) {
-
-                EditBox box = new EditBox(font, x, y, w, h, Component.literal(name));
-                box.setMessage(Component.literal(fig.dataType + name));
-                box.setMaxLength(1024);
-                if (fig.dataType.equals("int_")) {
-                    Fig.IntFig t = (Fig.IntFig) fig;
-                    box.setValue(String.valueOf(t.value));
-                    setResponder(box, "int", t.min, t.max, name);
-                    coolListOfOptionWidgets.add((T) box);
-                }
-                if (fig.dataType.equals("float_")) {
-                    Fig.FloatFig t = (Fig.FloatFig) fig;
-                    box.setValue(String.valueOf(t.value));
-                    box.setMessage(Component.literal(t.dataType + name));
-                    setResponder(box, "float", t.min, t.max, name);
-                    coolListOfOptionWidgets.add((T) box);
-                }
-                if (fig.dataType.equals("string_")) {
-                    assert fig instanceof Fig.StringFig;
-                    Fig.StringFig t = (Fig.StringFig) fig;
-                    box.setValue(t.value);
-                    setResponder(box,"string",0,t.max,name);
-                    box.setMessage(Component.literal(t.dataType+name));
-                    coolListOfOptionWidgets.add((T) box);
-                }
-                this.addRenderableWidget(box);
-                fig.rendered = true;
-            }
-            if (fig.widgetType.equals("check")) {
-                Fig.BooleanFig t = (Fig.BooleanFig) fig;
-                FigCheckbox toggle = FigCheckbox.builder(Component.literal(name), font).selected(t.value).build();
-                toggle.setX(x);
-                toggle.setY(y+5);
-                toggle.w = w;
-                toggle.col1 = 0xFFA0A0A0; toggle.col2 = 0xFF505050; toggle.bdr1 = 0xFF151515; toggle.bdr2 = 0xFF000000;
-                coolListOfOptionWidgets.add((T) toggle);
-                this.addRenderableWidget(toggle);
-                fig.rendered = true;
-            }
-            amountOfWidgetsOnScreen++;
-        }
-    }
-    public void addLabel(Fig t, int y) {
-        StringWidget label = new StringWidget(round(widgetWidth) + 10, y, width - round(widgetWidth) - 30, 20, Component.literal(t.name), font);
-        label.setTooltip(Tooltip.create(Component.literal(t.description)));
-        this.addRenderableWidget(label);
-    }
-
-    public void save(List<T> options) throws IllegalAccessException {
-        Field[] fields = FigManager.FIGS.getClass().getDeclaredFields();
-        for (T option : options) {
-            for (Field field : fields) {
-                try {
-                    Object value = field.get(FigManager.FIGS);
-//                    if (value instanceof Fig.MapFig f) {
-//                        Fig.MapFig tempFig = new Fig.MapFig(
-//                                f.name,
-//                                f.description,
-//                                f.maxLength,
-//                                f.dispLength,
-//                                f.itemType,
-//                                f.key,
-//                                f.valueString,
-//                                f.keyDesc,
-//                                f.valueDesc
-//                        );
-//                        tempFig.value = temp.get(f.id);
-//                        setFieldValue(field, FigManager.FIGS, tempFig);
-//                            clientLogger.error(f.id);
-//                            clientLogger.error(f.value.toString());
-//
-//
-//                    }
-//                    if (value instanceof Fig.ListFig f) {
-//
-//
-//                        clientLogger.error(tempString.get(f.id).toString());
-//                        Fig.ListFig tempFig = new Fig.ListFig(
-//                                f.name,
-//                                f.description,
-//                                f.maxLength,
-//                                f.dispLength,
-//                                f.itemType,
-//                                f.key,
-//                                f.valueString,
-//                                f.keyDesc,
-//                                f.valueDesc
-//                        );
-//                        tempFig.value = tempString.get(f.id);
-//                        setFieldValue(field, FigManager.FIGS, tempFig);
-//
-//                        clientLogger.error(f.id);
-//                        clientLogger.error(f.value.toString());
-//                    }
-                    if (option instanceof EditBox) {
-                        try {
-                            String msg = option.getMessage().getString();
-
-                            if (value instanceof Fig.IntFig f && msg.equals(f.dataType + field.getName())) {
-                                setFieldValue(field, FigManager.FIGS, new Fig.IntFig(f.name, f.description, Integer.parseInt(((EditBox) option).getValue()), f.min, f.max));
-                                break;
-                            }
-                            if (value instanceof Fig.FloatFig f && msg.equals(f.dataType + field.getName())) {
-                                setFieldValue(field, FigManager.FIGS, new Fig.FloatFig(f.name, f.description, Float.parseFloat(((EditBox) option).getValue()), f.min, f.max));
-                                break;
-                            }
-                            if (value instanceof Fig.StringFig f && msg.equals(f.dataType + field.getName())) {
-                                setFieldValue(field, FigManager.FIGS, new Fig.StringFig(f.name, f.description, ((EditBox) option).getValue(), f.max));
-                                break;
-                            }
-                        } catch (NumberFormatException e) {
-                            Minecraft.getInstance().player.sendSystemMessage(Component.literal("Format error for " + option.getMessage()).withStyle(ChatFormatting.RED));
-                        }
-                    }
-                    if (option instanceof FigCheckbox) {
-                        String msg = option.getMessage().getString();
-
-                        if (value instanceof Fig.BooleanFig f && msg.equals(field.getName()))  {
-                            if (field.getType() == Fig.BooleanFig.class) {
-                                setFieldValue(field, FigManager.FIGS, new Fig.BooleanFig(f.name, f.description, ((FigCheckbox) option).selected()));
-                                break;
-                            }
-
-                        }
-                    }
-                } catch (IllegalAccessException | NullPointerException _) {
-                }
-
-
-            }
-        }
-        List<Object> newFigs = FigManager.validate(FigManager.FIGS);
-        Object correctedFigs = newFigs.get(0);
-        int errorCount = (int) newFigs.get(1);
-        List<String> errors = (List<String>) newFigs.get(2);
-
-        if (errorCount != 0) {
-            this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToast.SystemToastId.NARRATOR_TOGGLE, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty(errorCount + " errors occurred, see chat/logs")));
-        }
-        try {
-            if (errorCount != 0) {
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(errorCount + " options failed to process:").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-                clientLogger.error(errorCount + " errors occured:");
-                for (String error : errors) {
-                    clientLogger.error(error);
-                }
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(""));
-                for (String error : errors) {
-                    Minecraft.getInstance().player.sendSystemMessage(Component.literal(error).withStyle(ChatFormatting.RED));
-                }
-
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(""));
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal("Figs that were invalid were reset.").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-            } else {
-                this.onClose();
-            }
-            ClientPlayNetworking.send(
-                    new FigPacket(FigManager.toString(correctedFigs))
-            );
-            FigManager.FIGS = correctedFigs;
-            FigManager.save(FigManager.name);
-        } catch (IllegalStateException | NullPointerException _) { // person is in main menu
-            if (errorCount != 0) {
-                this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToast.SystemToastId.NARRATOR_TOGGLE, Component.literal("Warning").withStyle(ChatFormatting.YELLOW), Component.nullToEmpty("Saved valid figs, invalid ones were reset")));
-            } else {
-                this.onClose();
-            }
-            //put them in a local copy if evrrything goes wrong
-            FigManager.FIGS = correctedFigs;
-            FigManager.save(FigManager.name);
-        }
-        tempStringList.clear();
-    }
     public void addOptions() throws IllegalAccessException {
         int y = 35;
         int x = 5;
@@ -327,7 +99,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                                     if (vv instanceof Fig k ) {
                                         if (t.hL) {
                                             label = new StringWidget(wx + (widthOfTheWidgetw + 5), y + 22, w - widthOfTheWidgetw - 5, 20, Component.literal(k.name), font);
-                                        } else {
+                                       } else {
                                             label = new StringWidget(wx, y + 22, w - 5, 20, Component.literal(k.name), font);
                                         }
                                         label.setTooltip(Tooltip.create(Component.literal(k.description)));
@@ -543,8 +315,8 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
 //
 //                    amountOfWidgetsOnScreen += t.dispLength+2;
 //                    this.addRenderableWidget(a);
-//
-
+//                
+                
             }
         }
 
@@ -552,17 +324,18 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
     }
     public void setResponder(EditBox box, String type, Object min, Object max, String name) {
         box.setResponder(e -> {
+
             try {
                 if (type.equals("int")) {
                     int intMin = (int) min;
                     int intMax = (int) max;
                     if (Integer.parseInt(box.getValue()) > intMax || Integer.parseInt(box.getValue()) < intMin) {
-                        box.setTextColor(TEXT_INVALID);
+                        box.setTextColor(0xFFFF2020);
                         if (!thingsKeepingYouFromSaving.contains(name)) {
                             thingsKeepingYouFromSaving.add(name);
                         }
                     } else {
-                        box.setTextColor(TEXT);
+                        box.setTextColor(0xFFFFFFFF);
                         thingsKeepingYouFromSaving.remove(name);
                     }
                 }
@@ -570,12 +343,12 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                     float floatMin = (float) min;
                     float floatMax = (float) max;
                     if (Float.parseFloat(box.getValue()) > floatMax || Float.parseFloat(box.getValue()) < floatMin) {
-                        box.setTextColor(TEXT_INVALID);
+                        box.setTextColor(0xFFFF2020);
                         if (!thingsKeepingYouFromSaving.contains(name)) {
                             thingsKeepingYouFromSaving.add(name);
                         }
                     } else {
-                        box.setTextColor(TEXT);
+                        box.setTextColor(0xFFFFFFFF);
                         thingsKeepingYouFromSaving.remove(name);
                     }
                 }
@@ -583,12 +356,12 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                     int stringMax = (int) max;
                     box.setResponder(s -> {
                         if (s.length() > stringMax) {
-                            box.setTextColor(TEXT_INVALID);
+                            box.setTextColor(0xFFFF2020);
                             if (!thingsKeepingYouFromSaving.contains(name)) {
                                 thingsKeepingYouFromSaving.add(name);
                             }
                         } else {
-                            box.setTextColor(TEXT);
+                            box.setTextColor(0xFFFFFFFF);
                             thingsKeepingYouFromSaving.remove(name);
 
                         }
@@ -596,31 +369,201 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                 }
 
             } catch (Exception ex) {
-                if (!thingsKeepingYouFromSaving.contains(name)) {
-                    thingsKeepingYouFromSaving.add(name);
-                }
-                box.setTextColor(TEXT_INVALID);
+                box.setTextColor(0xFFFF2020);
             }
         });
     }
 
+    public void addWidget(String name, Fig fig, int x, int y, int w, int h) {
+        if (!fig.rendered) {
+            if (fig.widgetType.equals("box")) {
+
+                EditBox box = new EditBox(font, x, y, w, h, Component.literal(name));
+                box.setMessage(Component.literal(fig.dataType + name));
+                box.setMaxLength(1024);
+                if (fig.dataType.equals("int_")) {
+                    Fig.IntFig t = (Fig.IntFig) fig;
+                    box.setValue(String.valueOf(t.value));
+                    setResponder(box, "int", t.min, t.max, name);
+                    coolListOfOptionWidgets.add((T) box);
+                }
+                if (fig.dataType.equals("float_")) {
+                    Fig.FloatFig t = (Fig.FloatFig) fig;
+                    box.setValue(String.valueOf(t.value));
+                    box.setMessage(Component.literal(t.dataType + name));
+                    setResponder(box, "float", t.min, t.max, name);
+                    coolListOfOptionWidgets.add((T) box);
+                }
+                if (fig.dataType.equals("string_")) {
+                    assert fig instanceof Fig.StringFig;
+                    Fig.StringFig t = (Fig.StringFig) fig;
+                    box.setValue(t.value);
+                    setResponder(box,"string",0,t.max,name);
+                    box.setMessage(Component.literal(t.dataType+name));
+                    coolListOfOptionWidgets.add((T) box);
+                }
+                this.addRenderableWidget(box);
+                fig.rendered = true;
+            }
+            if (fig.widgetType.equals("check")) {
+                Fig.BooleanFig t = (Fig.BooleanFig) fig;
+                FigCheckbox toggle = FigCheckbox.builder(Component.literal(name), font).selected(t.value).build();
+                toggle.setX(x);
+                toggle.setY(y+5);
+                toggle.w = w;
+                toggle.col1 = 0xFFA0A0A0; toggle.col2 = 0xFF505050; toggle.bdr1 = 0xFF151515; toggle.bdr2 = 0xFF000000;
+                coolListOfOptionWidgets.add((T) toggle);
+                this.addRenderableWidget(toggle);
+                fig.rendered = true;
+            }
+            amountOfWidgetsOnScreen++;
+        }
+    }
+    public void addLabel(Fig t, int y) {
+        StringWidget label = new StringWidget(round(widgetWidth) + 10, y, width - round(widgetWidth) - 30, 20, Component.literal(t.name), font);
+        label.setTooltip(Tooltip.create(Component.literal(t.description)));
+        this.addRenderableWidget(label);
+    }
+
+    public void save(List<T> options) throws IllegalAccessException {
+        Field[] fields = FigManager.FIGS.getClass().getDeclaredFields();
+        for (T option : options) {
+            for (Field field : fields) {
+                try {
+                    Object value = field.get(FigManager.FIGS);
+//                    if (value instanceof Fig.MapFig f) {
+//                        Fig.MapFig tempFig = new Fig.MapFig(
+//                                f.name,
+//                                f.description,
+//                                f.maxLength,
+//                                f.dispLength,
+//                                f.itemType,
+//                                f.key,
+//                                f.valueString,
+//                                f.keyDesc,
+//                                f.valueDesc
+//                        );
+//                        tempFig.value = temp.get(f.id);
+//                        setFieldValue(field, FigManager.FIGS, tempFig);
+//                            clientLogger.error(f.id);
+//                            clientLogger.error(f.value.toString());
+//
+//
+//                    }
+//                    if (value instanceof Fig.ListFig f) {
+//
+//
+//                        clientLogger.error(tempString.get(f.id).toString());
+//                        Fig.ListFig tempFig = new Fig.ListFig(
+//                                f.name,
+//                                f.description,
+//                                f.maxLength,
+//                                f.dispLength,
+//                                f.itemType,
+//                                f.key,
+//                                f.valueString,
+//                                f.keyDesc,
+//                                f.valueDesc
+//                        );
+//                        tempFig.value = tempString.get(f.id);
+//                        setFieldValue(field, FigManager.FIGS, tempFig);
+//
+//                        clientLogger.error(f.id);
+//                        clientLogger.error(f.value.toString());
+//                    }
+                    if (option instanceof EditBox) {
+                        try {
+                            String msg = option.getMessage().getString();
+
+                            if (value instanceof Fig.IntFig f && msg.equals(f.dataType + field.getName())) {
+                                setFieldValue(field, FigManager.FIGS, new Fig.IntFig(f.name, f.description, Integer.parseInt(((EditBox) option).getValue()), f.min, f.max));
+                                break;
+                            }
+                            if (value instanceof Fig.FloatFig f && msg.equals(f.dataType + field.getName())) {
+                                setFieldValue(field, FigManager.FIGS, new Fig.FloatFig(f.name, f.description, Float.parseFloat(((EditBox) option).getValue()), f.min, f.max));
+                                break;
+                            }
+                            if (value instanceof Fig.StringFig f && msg.equals(f.dataType + field.getName())) {
+                                setFieldValue(field, FigManager.FIGS, new Fig.StringFig(f.name, f.description, ((EditBox) option).getValue(), f.max));
+                                break;
+                            }
+                        } catch (NumberFormatException e) {
+                            Minecraft.getInstance().player.sendSystemMessage(Component.literal("Format error for " + option.getMessage()).withStyle(ChatFormatting.RED));
+                        }
+                    }
+                    if (option instanceof FigCheckbox) {
+                        String msg = option.getMessage().getString();
+
+                        if (value instanceof Fig.BooleanFig f && msg.equals(field.getName()))  {
+                            if (field.getType() == Fig.BooleanFig.class) {
+                                setFieldValue(field, FigManager.FIGS, new Fig.BooleanFig(f.name, f.description, ((FigCheckbox) option).selected()));
+                                break;
+                            }
+                        
+                        }
+                    }
+                } catch (IllegalAccessException | NullPointerException _) {
+                }
+
+
+            }
+        }
+        List<Object> newFigs = FigManager.validate(FigManager.FIGS);
+        Object correctedFigs = newFigs.get(0);
+        int errorCount = (int) newFigs.get(1);
+        List<String> errors = (List<String>) newFigs.get(2);
+
+        if (errorCount != 0) {
+            this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToast.SystemToastId.NARRATOR_TOGGLE, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty(errorCount + " errors occurred, see chat/logs")));
+        }
+        try {
+            if (errorCount != 0) {
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal(errorCount + " options failed to process:").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+                clientLogger.error(errorCount + " errors occured:");
+                for (String error : errors) {
+                    clientLogger.error(error);
+                }
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal(""));
+                for (String error : errors) {
+                    Minecraft.getInstance().player.sendSystemMessage(Component.literal(error).withStyle(ChatFormatting.RED));
+                }
+
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal(""));
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal("Figs that were invalid were reset.").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+            } else {
+                this.onClose();
+            }
+            ClientPlayNetworking.send(
+                    new FigPacket(FigManager.toString(correctedFigs))
+            );
+            FigManager.FIGS = correctedFigs;
+            FigManager.save(FigManager.name);
+        } catch (IllegalStateException | NullPointerException _) { // person is in main menu
+            if (errorCount != 0) {
+                this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToast.SystemToastId.NARRATOR_TOGGLE, Component.literal("Warning").withStyle(ChatFormatting.YELLOW), Component.nullToEmpty("Saved valid figs, invalid ones were reset")));
+            } else {
+                this.onClose();
+            }
+            //put them in a local copy if evrrything goes wrong
+            FigManager.FIGS = correctedFigs;
+            FigManager.save(FigManager.name);
+        }
+        tempStringList.clear();
+    }
 
     protected void init() {
-
+        tempStringList.clear();
         for (Field field : fieldsInFigs) {
             field.setAccessible(true);
             try {
                 Object value = field.get(FigManager.FIGS);
                 if (value instanceof Fig f) {
                     f.rendered = false;
-                    f.inGroup = false;
                 }
             } catch (Exception e) {
                 clientLogger.error("Resetting fig render states failed, may fail to render on next open.");
             }
         }
-
-        FigManager.rebuildIDs();
         if (widthRatioFloat < 1f) {
             widgetWidth = (int) (widthRatioFloat * width);
         } else {
@@ -628,38 +571,46 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         }
         amountOfWidgetsOnScreen = 0;
         howFarYouveScrolled = 0;
-        if (INVERT) {
-            this.addRenderableWidget(new FigBox(0, 0, width, height / 2, BACKGROUND_2, BACKGROUND_1)).active = false;
-            this.addRenderableWidget(new FigBox(0, height / 2, width, height / 2, BACKGROUND_1, BACKGROUND_2)).active = false;
-        } else {
-            this.addRenderableWidget(new FigBox(0, 0, width, height / 2, BACKGROUND_1, BACKGROUND_2)).active = false;
-            this.addRenderableWidget(new FigBox(0, height / 2, width, height / 2, BACKGROUND_2, BACKGROUND_1)).active = false;
-        }
+        this.addRenderableWidget(new FigBox(0, 0, width, height / 2, 0xFF000000, 0xAA000000)).active = false;
+        this.addRenderableWidget(new FigBox(0, height / 2, width, height / 2, 0xAA000000, 0xFF000000)).active = false;
         try {
             addOptions();
 
         } catch (IllegalAccessException e) {
         }
-        this.addRenderableWidget(new FigBox(0, height - HEADER, width, 15, 0x00000000, 0xAA000000)).active = false;
-        this.addRenderableWidget(new FigBox(0, HEADER, width, 15, 0xAA000000, 0x00000000)).active = false;
-        this.addRenderableWidget(new FigBox(width - 10, 0, 10, height, SCROLL_1, SCROLL_2)).active = false;
-        this.addRenderableWidget(new FigBox(0, 0, width, HEADER, PANEL_1, PANEL_2)).active = false;
-        this.addRenderableWidget(new FigBox(0, height - 17, width, 17, PANEL_1, PANEL_2)).active = false;
+        this.addRenderableWidget(new FigBox(0, height - 35, width, 15, 0x00000000, 0xAA000000)).active = false;
+        this.addRenderableWidget(new FigBox(0, 35, width, 15, 0xAA000000, 0x00000000)).active = false;
+        this.addRenderableWidget(new FigBox(width - 10, 0, 10, height, 0xFF000000, 0xFF101010)).active = false;
+        this.addRenderableWidget(new FigBox(0, 0, width, 35, 0xFF202020, 0xFF070707)).active = false;
+        this.addRenderableWidget(new FigBox(0, height - 20, width, 20, 0xFF202020, 0xFF070707)).active = false;
 
         int w = width;
-        int th = height - HEADER - 20;
-        int ch = amountOfWidgetsOnScreen * SPACING;
-        int tth = Math.max(10, (int)((float) th / ch * th));
+
+        FigButton close = new FigButton(w - 90, 7, 80, 20, Component.literal("Discard"), btn -> {
+            tempOptions.clear();
+
+            tempStringList.clear();
+            onClose();
+        }, 0xFFA05050, 0xFF301110, 0xFF151515, 0xFF000000, 2);
+        close.setX(width - 100 - close.getWidth());
+        this.addRenderableWidget(close);
         thumb = new FigBox(
                 width - 8,
-                HEADER,
+                35,
                 6,
-                tth, DARK_1, DARK_2, BORDER_1, BORDER_2, 1);
+                10, 0xFF606060, 0xFF303030, 0xFF202020, 0xFF000000, 1);
         this.addRenderableWidget(thumb);
-
-        StringWidget title = new StringWidget(10, Math.max(2,((HEADER/2)-8)), 1000, 15, Component.literal(name), font);
-        StringWidget subtitle = new StringWidget(10, height - 13, 1000, 10, Component.literal(FigManager.name + FigManager.version).withStyle(ChatFormatting.GRAY), font);
-        StringWidget credit = new StringWidget(width - 100, height - 13, 1000, 10, Component.literal("TheCreeper3326").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC), font);
+        save = new FigButton(width - 90, 7, 80, 20, Component.literal("Save"), btn -> {
+            try {
+                save(coolListOfOptionWidgets);
+            } catch (IllegalAccessException e) {
+                clientLogger.error(e.getMessage());
+            }
+        }, 0xFFA0A0A0, 0xFF505050, 0xFF151515, 0xFF000000, 2);
+        this.addRenderableWidget(save);
+        StringWidget title = new StringWidget(10, 10, 1000, 15, Component.literal(FigManager.name + " - Fig menu"), font);
+        StringWidget subtitle = new StringWidget(10, height - 17, 1000, 15, Component.literal(FigManager.name + FigManager.version).withStyle(ChatFormatting.GRAY), font);
+        StringWidget credit = new StringWidget(width - 100, height - 17, 1000, 15, Component.literal("TheCreeper3326").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC), font);
         title.active = true;
         subtitle.active = true;
         credit.active = true;
@@ -675,20 +626,21 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 
 
-        boolean didTheListEatTheScrollEvent = false;
+        boolean listHovered = false;
         for (Object child : this.children()) {
-            if (child instanceof FigList w && w.hovered) {
-                didTheListEatTheScrollEvent = w.shift(scrollY);
-                break;
+            if (child instanceof FigList<?> widget) {
+                if(widget.hovered){
+                    listHovered = true;
+                    widget.shift(scrollY);
+                }
             }
         }
-
-        int max = (amountOfWidgetsOnScreen * SPACING) - (height - HEADER-20) + 40;
-        if (!didTheListEatTheScrollEvent) {
+        int max = (amountOfWidgetsOnScreen * 22) - (height - 55) + 40;
+        if (!listHovered) {
             if (scrollY < 0 && abs(howFarYouveScrolled) < max) {
-                shift((int) scrollY * SPACING);
+                shift((int) scrollY * 22);
             } else if (scrollY > 0 && howFarYouveScrolled < 0) {
-                shift((int) scrollY * SPACING);
+                shift((int) scrollY * 22);
             }
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
@@ -696,11 +648,11 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        int max = (amountOfWidgetsOnScreen * SPACING) - (height - 55) + 40;
+        int max = (amountOfWidgetsOnScreen * 22) - (height - 55) + 40;
         if (event.isDown() && abs(howFarYouveScrolled) < max) {
-            shift(SPACING);
+            shift(22);
         } else if (event.isUp() && howFarYouveScrolled < 0) {
-            shift(-SPACING);
+            shift(-22);
         }
         return super.keyPressed(event);
     }
@@ -730,7 +682,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                     widget.setY((widget.getY() + offset));
                 }
             }
-            if (child instanceof FigList widget) {
+            if (child instanceof FigList<?> widget) {
                widget.Y += offset;
             }
             if (child instanceof FigBox widget) {
@@ -740,13 +692,18 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
             }
 
 
-            int max = ((amountOfWidgetsOnScreen) * SPACING) - (height - (HEADER+20)) +40;
+            int max = (amountOfWidgetsOnScreen * 22) - (height - 55) + 40;
             float progress = ((float) howFarYouveScrolled / max);
-            int trackSpace = (height - (HEADER + 20)) - thumb.height;
-            thumb.y = HEADER - (int) (min(progress, 1.0f) * trackSpace);
+            int trackSpace = (height - 55) - thumb.height;
+            thumb.y = 35 - (int) (min(progress, 1.0f) * trackSpace);
         }
     }
 
+
+    @Override
+    public boolean shouldCloseOnEsc() {
+        return true;
+    }
 
     @Override
     public void onClose() {
@@ -756,6 +713,20 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
 
+
+
+
+        if (thingsKeepingYouFromSaving.isEmpty()) {
+            save.col1 = 0xFFA0A0A0;
+            save.col2 = 0xFF505050;
+            save.setTooltip(Tooltip.create(Component.literal("")));
+            save.active = true;
+        } else {
+            save.col1 = 0x50A0A0A0;
+            save.col2 = 0x50505050;
+            save.setTooltip(Tooltip.create(Component.literal("Invalid Fig Values, check the following: "+ thingsKeepingYouFromSaving.toString())));
+            save.active = false;
+        }
         for (Object c : this.children()) {
             if (c instanceof StringWidget w) {
                 if (!w.active) {
@@ -773,6 +744,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                 } else {
                     w.visible = true;
                 }
+
             }
             if (c instanceof FigCheckbox w) {
                 if (w.getY()<30) {
@@ -786,4 +758,6 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, delta);
 
     }
+
+     */
 }
