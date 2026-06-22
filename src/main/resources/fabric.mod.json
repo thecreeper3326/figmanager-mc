@@ -14,7 +14,7 @@
       "net.johnseagull.figmanagerMc.client.FigmanagerMcDataGenerator"
     ],
     "client": [
-      "net.johnseagull.figmanagerMc.client.FigmanagerMcClient"
+      "net.johnseagull.figManagerClient.FigmanagerMcClient"
     ],
     "main": [
       "net.johnseagull.figmanagerMc.FigmanagerMc"

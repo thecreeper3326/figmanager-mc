@@ -1,4 +1,4 @@
-package net.johnseagull.figmanagerMC;
+package net.johnseagull.figManagerMC;
 
 import net.johnseagull.figManager.FigManager;
 import net.minecraft.network.FriendlyByteBuf;

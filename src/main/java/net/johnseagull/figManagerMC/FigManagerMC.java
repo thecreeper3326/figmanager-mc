@@ -1,4 +1,4 @@
-package net.johnseagull.figmanagerMC;
+package net.johnseagull.figManagerMC;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -22,8 +22,8 @@ public class FigManagerMC extends FigManager {
     @Override
     public void extension() {
         exName = "figManagerMC";
-        PayloadTypeRegistry.serverboundPlay().register(FigPacket.ID, FigPacket.CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(FigPacket.ID, FigPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(FigPacket.ID, FigPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(FigPacket.ID, FigPacket.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(FigPacket.ID, (payload, context) -> {
             context.server().execute(() -> {
                 LOGGER.warn("Received figs from client "+ context.player().getPlainTextName()+". Verifying...");

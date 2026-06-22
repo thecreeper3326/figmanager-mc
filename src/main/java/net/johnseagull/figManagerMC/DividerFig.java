@@ -1,4 +1,4 @@
-package net.johnseagull.figmanagerMC;
+package net.johnseagull.figManagerMC;
 
 import net.minecraft.ChatFormatting;
 import org.jspecify.annotations.Nullable;
