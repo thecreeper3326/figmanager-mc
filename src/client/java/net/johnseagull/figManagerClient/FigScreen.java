@@ -640,32 +640,49 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
 
         } catch (IllegalAccessException e) {
         }
-        this.addRenderableWidget(new FigBox(0, height - HEADER, width, 15, 0x00000000, 0xAA000000)).active = false;
-        this.addRenderableWidget(new FigBox(0, HEADER, width, 15, 0xAA000000, 0x00000000)).active = false;
-        this.addRenderableWidget(new FigBox(width - 10, 0, 10, height, SCROLL_1, SCROLL_2)).active = false;
-        this.addRenderableWidget(new FigBox(0, 0, width, HEADER, PANEL_1, PANEL_2)).active = false;
-        this.addRenderableWidget(new FigBox(0, height - 17, width, 17, PANEL_1, PANEL_2)).active = false;
+        amountOfWidgetsOnScreen = 0;
+        howFarYouveScrolled = 0;
+
+        this.addRenderableWidget(new FigBox(0, height - 35, width, 15, 0x00000000, 0xAA000000)).active = false;
+        this.addRenderableWidget(new FigBox(0, 35, width, 15, 0xAA000000, 0x00000000)).active = false;
+        this.addRenderableWidget(new FigBox(width - 10, 0, 10, height, 0xFF000000, 0xFF101010)).active = false;
+        this.addRenderableWidget(new FigBox(0, 0, width, 35, 0xFF202020, 0xFF070707)).active = false;
+        this.addRenderableWidget(new FigBox(0, height - 20, width, 20, 0xFF202020, 0xFF070707)).active = false;
 
         int w = width;
-        int th = height - HEADER - 20;
-        int ch = amountOfWidgetsOnScreen * SPACING;
-        int tth = Math.max(10, (int)((float) th / ch * th));
+
+        FigButton close = new FigButton(w - 90, 7, 80, 20, Component.literal("Discard"), btn -> {
+            tempOptions.clear();
+
+            tempStringList.clear();
+            onClose();
+        }, 0xFFA05050, 0xFF301110, 0xFF151515, 0xFF000000, 2);
+        close.setX(width - 100 - close.getWidth());
+        this.addRenderableWidget(close);
         thumb = new FigBox(
                 width - 8,
-                HEADER,
+                35,
                 6,
-                tth, DARK_1, DARK_2, BORDER_1, BORDER_2, 1);
+                10, 0xFF606060, 0xFF303030, 0xFF202020, 0xFF000000, 1);
         this.addRenderableWidget(thumb);
-
-        StringWidget title = new StringWidget(10, Math.max(2,((HEADER/2)-8)), 1000, 15, Component.literal(name), font);
-        StringWidget subtitle = new StringWidget(10, height - 13, 1000, 10, Component.literal(FigManager.name + FigManager.version).withStyle(ChatFormatting.GRAY), font);
-        StringWidget credit = new StringWidget(width - 100, height - 13, 1000, 10, Component.literal("TheCreeper3326").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC), font);
+        FigButton save = new FigButton(width - 90, 7, 80, 20, Component.literal("Save"), btn -> {
+            try {
+                save(coolListOfOptionWidgets);
+            } catch (IllegalAccessException e) {
+                clientLogger.error(e.getMessage());
+            }
+        }, 0xFFA0A0A0, 0xFF505050, 0xFF151515, 0xFF000000, 2);
+        this.addRenderableWidget(save);
+        StringWidget title = new StringWidget(10, 10, 1000, 15, Component.literal(FigManager.name + " - Fig menu"), font);
+        StringWidget subtitle = new StringWidget(10, height - 17, 1000, 15, Component.literal(FigManager.name + FigManager.version).withStyle(ChatFormatting.GRAY), font);
+        StringWidget credit = new StringWidget(width - 100, height - 17, 1000, 15, Component.literal("TheCreeper3326").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC), font);
         title.active = true;
         subtitle.active = true;
         credit.active = true;
         this.addRenderableWidget(credit);
         this.addRenderableWidget(title);
         this.addRenderableWidget(subtitle);
+
 
 
 
