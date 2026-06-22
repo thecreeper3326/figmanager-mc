@@ -1,7 +1,7 @@
 package net.johnseagull.figManagerClient;
 
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -51,6 +51,13 @@ public class FigBox extends AbstractWidget {
     public int getY() {
         return y;
     }
+
+    @Override
+    protected void renderWidget(GuiGraphics graphics, int i, int j, float f) {
+        graphics.fillGradient(x-borderSize,y-borderSize,x+width+borderSize,y+height+borderSize,border1,border2);
+        graphics.fillGradient(x,y,x+width,y+height,col1,col2);
+    }
+
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         return false;
@@ -61,17 +68,13 @@ public class FigBox extends AbstractWidget {
         super.setPosition(x, y);
     }
 
-    @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        graphics.fillGradient(x-borderSize,y-borderSize,x+width+borderSize,y+height+borderSize,border1,border2);
-        graphics.fillGradient(x,y,x+width,y+height,col1,col2);
-    }
+
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput output) {
 
     }
-    protected void handleCursor(final GuiGraphicsExtractor graphics) {
+    protected void handleCursor(final GuiGraphics graphics) {
         if (this.isHovered()) {
             graphics.requestCursor(CursorTypes.ARROW);
         }

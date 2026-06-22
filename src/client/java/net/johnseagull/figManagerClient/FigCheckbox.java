@@ -3,7 +3,7 @@ package net.johnseagull.figManagerClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.client.gui.components.Tooltip;
@@ -85,28 +85,8 @@ public class FigCheckbox extends AbstractButton {
         this.onValueChange.onValueChange(this, this.selected);
     }
 
-    public boolean selected() {
-        return this.selected;
-    }
-
     @Override
-    public void updateWidgetNarration(final NarrationElementOutput output) {
-        output.add(NarratedElementType.TITLE, this.createNarrationMessage());
-        if (this.active) {
-            if (this.isFocused()) {
-                output.add(
-                        NarratedElementType.USAGE, Component.translatable(this.selected ? "narration.FigCheckbox.usage.focused.uncheck" : "narration.FigCheckbox.usage.focused.check")
-                );
-            } else {
-                output.add(
-                        NarratedElementType.USAGE, Component.translatable(this.selected ? "narration.FigCheckbox.usage.hovered.uncheck" : "narration.FigCheckbox.usage.hovered.check")
-                );
-            }
-        }
-    }
-
-    @Override
-    public void extractContents(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float a) {
+    protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
         Identifier sprite;
@@ -133,14 +113,35 @@ public class FigCheckbox extends AbstractButton {
 
         FigBox border = new FigBox(this.getX()-bdr, this.getY()-bdr, boxSize+bdr, boxSize+bdr, bdr2, bdr1);
         FigBox box = new FigBox(this.getX(), this.getY(), boxSize-bdr, boxSize-bdr, tempcol1, tempcol2);
-        border.extractWidgetRenderState(graphics, mouseX, mouseY, a);
-        box.extractWidgetRenderState(graphics, mouseX, mouseY, a);
+        border.renderWidget(graphics, mouseX, mouseY, a);
+        box.renderWidget(graphics, mouseX, mouseY, a);
         int textX = this.getX() + boxSize + 4;
         int textY = this.getY() + boxSize / 2 - this.textWidget.getHeight() / 2;
         this.textWidget.setPosition(textX, textY);
-        this.textWidget.visitLines(graphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.notClickable(this.isHovered())));
+        this.textWidget.visitLines(graphics.textRendererForWidget(this, GuiGraphics.HoveredTextEffects.notClickable(this.isHovered())));
 
     }
+
+    public boolean selected() {
+        return this.selected;
+    }
+
+    @Override
+    public void updateWidgetNarration(final NarrationElementOutput output) {
+        output.add(NarratedElementType.TITLE, this.createNarrationMessage());
+        if (this.active) {
+            if (this.isFocused()) {
+                output.add(
+                        NarratedElementType.USAGE, Component.translatable(this.selected ? "narration.FigCheckbox.usage.focused.uncheck" : "narration.FigCheckbox.usage.focused.check")
+                );
+            } else {
+                output.add(
+                        NarratedElementType.USAGE, Component.translatable(this.selected ? "narration.FigCheckbox.usage.hovered.uncheck" : "narration.FigCheckbox.usage.hovered.check")
+                );
+            }
+        }
+    }
+
 
     public static class Builder {
         private final Component message;

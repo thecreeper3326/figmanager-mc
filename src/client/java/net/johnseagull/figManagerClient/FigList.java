@@ -1,7 +1,7 @@
 package net.johnseagull.figManagerClient;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -33,13 +33,15 @@ public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidg
         FigManagerClient.clientLogger.info(y+"");
     }
     boolean temp = false;
+
+
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float a) {
 
         FigBox bgTop = new FigBox(0,Y,this.width+10,30,0xFF000000,0x11000000);
-        bgTop.extractWidgetRenderState(graphics,mouseX,mouseY,a);
+        bgTop.renderWidget(graphics,mouseX,mouseY,a);
         FigBox bgBottom = new FigBox(0,Y+this.height-30,this.width+10,30,0x11000000,0xFF000000);
-        bgBottom.extractWidgetRenderState(graphics,mouseX,mouseY,a);
+        bgBottom.renderWidget(graphics,mouseX,mouseY,a);
 
         y = Y + offset +5;
         count = k.size();
@@ -47,8 +49,8 @@ public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidg
             for (int i = 0; i < k.size(); i++) {
 
                 if (y >= this.Y && y <= this.Y + this.height) {
-                    graphics.text(Minecraft.getInstance().font, k.get(i), X, y, 0xFFFFFFFF);
-                    graphics.text(Minecraft.getInstance().font, v.get(i), X + this.width / 2, y, 0xFFFFFFFF);
+                    graphics.drawString(Minecraft.getInstance().font, k.get(i), X, y, 0xFFFFFFFF);
+                    graphics.drawString(Minecraft.getInstance().font, v.get(i), X + this.width / 2, y, 0xFFFFFFFF);
                 }
                 y+=22;
             }
@@ -56,7 +58,7 @@ public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidg
             for (int i = 0; i < k.size(); i++) {
 
                 if (y >= this.Y && y <= this.Y + this.height) {
-                    graphics.text(Minecraft.getInstance().font, k.get(i), X, y, 0xFFFFFFFF);
+                    graphics.drawString(Minecraft.getInstance().font, k.get(i), X, y, 0xFFFFFFFF);
                 }
                 y+=22;
 
@@ -75,14 +77,13 @@ public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidg
         int trackSpace = (this.height) - thumb.height;
         thumb.y = Math.min(this.Y - (int) (min(progress, 1.0f) * trackSpace),this.Y + this.height-thumb.height);
         if (count > this.height/22) {
-            thumb.extractWidgetRenderState(graphics, mouseX, mouseY, a);
+            thumb.renderWidget(graphics, mouseX, mouseY, a);
         }
 
         if( mx > this.X && mx < this.X + this.width && my > this.Y && my < this.Y + this.height) {
             temp=true;
         }
         hovered = temp;
-      
 
     }
 

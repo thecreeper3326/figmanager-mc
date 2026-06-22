@@ -1,7 +1,7 @@
 package net.johnseagull.figManagerClient;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -24,6 +24,26 @@ public class FigButton extends Button {
     @Override
     public void onPress(final InputWithModifiers input) {
         pressed = true;
+    }
+
+    @Override
+    protected void renderContents(GuiGraphics graphics, int i, int j, float f) {
+        int x = this.getX();
+        int y = this.getY();
+        graphics.fillGradient(x-borderSize, y -borderSize,x + width +borderSize, y+height + borderSize,border1,border2);
+        graphics.fillGradient(x, y, x +width,y + height,col1,col2);
+        int col1b = new java.awt.Color(col1, true).brighter().getRGB();
+        int col2b = new java.awt.Color(col2, true).brighter().getRGB();
+        if (isHovered) {
+            graphics.fillGradient(x, y, x +width,y + height,col1b,col2b);
+        } else {
+            pressed = false;
+        }
+        if (pressed) {
+            graphics.fillGradient(x, y, x +width,y + height,col2,col1);
+        }
+        graphics.drawCenteredString(Minecraft.getInstance().font,label,x+width/2,y+height/4,0xFFFFFFFF);
+
     }
 
     @Override
@@ -57,25 +77,6 @@ public class FigButton extends Button {
     }
     boolean e = false;
 
-    @Override
-    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        int x = this.getX();
-        int y = this.getY();
-        graphics.fillGradient(x-borderSize, y -borderSize,x + width +borderSize, y+height + borderSize,border1,border2);
-        graphics.fillGradient(x, y, x +width,y + height,col1,col2);
-        int col1b = new java.awt.Color(col1, true).brighter().getRGB();
-        int col2b = new java.awt.Color(col2, true).brighter().getRGB();
-        if (isHovered) {
-            graphics.fillGradient(x, y, x +width,y + height,col1b,col2b);
-        } else {
-            pressed = false;
-        }
-        if (pressed) {
-            graphics.fillGradient(x, y, x +width,y + height,col2,col1);
-        }
-        graphics.centeredText(Minecraft.getInstance().font,label,x+width/2,y+height/4,0xFFFFFFFF);
-
-    }
 }
 
 

@@ -1,7 +1,7 @@
 package net.johnseagull.figManagerClient;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -41,8 +41,6 @@ public class FigToggleButton extends Button {
         if (clicks % 2 == 1) {
             pressed = false;
         }
-        IO.println(clicks);
-        IO.println("pressed: " + pressed);
     }
 
     /**
@@ -68,7 +66,7 @@ public class FigToggleButton extends Button {
     boolean e = false;
 
     @Override
-    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+    protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         int x = this.getX();
         int y = this.getY();
         graphics.fillGradient(x-borderSize, y -borderSize,x + width +borderSize, y+height + borderSize,border1,border2);
@@ -81,9 +79,10 @@ public class FigToggleButton extends Button {
         if (pressed) {
             graphics.fillGradient(x, y, x +width,y + height,col2,col1);
         }
-        graphics.centeredText(Minecraft.getInstance().font,label,x+width/2,y+height/4,0xFFFFFFFF);
+        graphics.drawCenteredString(Minecraft.getInstance().font,label,x+width/2,y+height/4,0xFFFFFFFF);
 
     }
+
 }
 
 

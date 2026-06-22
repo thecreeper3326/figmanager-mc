@@ -10,7 +10,7 @@ import net.johnseagull.figManagerMC.DividerFig;
 import net.johnseagull.figManagerMC.FigPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.screens.Screen;
@@ -238,7 +238,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                                 break;
                             }
                         } catch (NumberFormatException e) {
-                            Minecraft.getInstance().player.sendSystemMessage(Component.literal("Format error for " + option.getMessage()).withStyle(ChatFormatting.RED));
+                            Minecraft.getInstance().player.displayClientMessage(Component.literal("Format error for " + option.getMessage()).withStyle(ChatFormatting.RED),false);
                         }
                     }
                     if (option instanceof FigCheckbox) {
@@ -252,7 +252,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
 
                         }
                     }
-                } catch (IllegalAccessException | NullPointerException _) {
+                } catch (IllegalAccessException | NullPointerException e) {
                 }
 
 
@@ -268,18 +268,18 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         }
         try {
             if (errorCount != 0) {
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(errorCount + " options failed to process:").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+                Minecraft.getInstance().player.displayClientMessage(Component.literal(errorCount + " options failed to process:").withStyle(ChatFormatting.RED, ChatFormatting.BOLD),false);
                 clientLogger.error(errorCount + " errors occured:");
                 for (String error : errors) {
                     clientLogger.error(error);
                 }
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(""));
+                Minecraft.getInstance().player.displayClientMessage(Component.literal(""),false);
                 for (String error : errors) {
-                    Minecraft.getInstance().player.sendSystemMessage(Component.literal(error).withStyle(ChatFormatting.RED));
+                    Minecraft.getInstance().player.displayClientMessage(Component.literal(error).withStyle(ChatFormatting.RED),false);
                 }
 
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(""));
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal("Figs that were invalid were reset.").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+                Minecraft.getInstance().player.displayClientMessage(Component.literal(""),false);
+                Minecraft.getInstance().player.displayClientMessage(Component.literal("Figs that were invalid were reset.").withStyle(ChatFormatting.RED, ChatFormatting.BOLD),false);
             } else {
                 this.onClose();
             }
@@ -288,7 +288,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
             );
             FigManager.FIGS = correctedFigs;
             FigManager.save(FigManager.name);
-        } catch (IllegalStateException | NullPointerException _) { // person is in main menu
+        } catch (IllegalStateException | NullPointerException e) { // person is in main menu
             if (errorCount != 0) {
                 this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToast.SystemToastId.NARRATOR_TOGGLE, Component.literal("Warning").withStyle(ChatFormatting.YELLOW), Component.nullToEmpty("Saved valid figs, invalid ones were reset")));
             } else {
@@ -771,7 +771,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
 
         for (Object c : this.children()) {
             if (c instanceof StringWidget w) {
@@ -800,7 +800,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
 
             }
         }
-        super.extractRenderState(graphics, mouseX, mouseY, delta);
+        super.render(graphics, mouseX, mouseY, delta);
 
     }
 }
