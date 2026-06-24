@@ -9,6 +9,7 @@ buildscript {
         classpath 'com.gradleup.shadow:shadow-gradle-plugin:9.4.1'
     }
 }
+
 plugins {
     id 'net.fabricmc.fabric-loom-remap' version "1.14-SNAPSHOT"
     id 'maven-publish'
@@ -23,27 +24,37 @@ repositories {
     mavenLocal()
     gradlePluginPortal()
 }
+
 apply plugin: 'com.gradleup.shadow'
+
 configurations {
     shadowMe
     implementation.extendsFrom shadowMe
 }
+
 tasks.named('shadowJar', ShadowJar) {
-    configurations = []
+    configurations = [project.configurations.shadowMe]
+
     from sourceSets.main.output
     from sourceSets.client.output
-    from {
-        project.configurations.shadowMe.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+
     archiveClassifier = 's'
-    relocate 'net.johnseagull.figManager', "net.johnseagull.${project.archives_base_name}.libs.figManager"
+
     mergeServiceFiles()
+
+    dependencies {
+        exclude(dependency('com.google.code.gson:gson:.*'))
+        exclude(dependency('org.slf4j:slf4j-api:.*'))
+    }
 }
+
 version = project.mod_version
 group = project.maven_group
+
 base {
     archivesName = project.archives_base_name
 }
+
 loom {
     splitEnvironmentSourceSets()
 
@@ -54,22 +65,27 @@ loom {
         }
     }
 }
+
 fabricApi {
     configureDataGeneration {
         client = true
     }
 }
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    api "net.johnseagull:figmanager:${project.fig_version}"
+
+    shadowMe "net.johnseagull:figmanager:${project.fig_version}"
 }
+
 tasks.named('remapJar') {
     dependsOn shadowJar
     inputFile = shadowJar.archiveFile
 }
+
 processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
@@ -81,6 +97,7 @@ processResources {
                 "loader_version": project.loader_version
     }
 }
+
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
@@ -89,18 +106,29 @@ java {
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
 }
+
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archives_base_name}" }
     }
 }
-tasks.register('devJar', Jar) {
+
+tasks.register('devJar', ShadowJar) {
     archiveClassifier = 'dev'
+    configurations = [project.configurations.shadowMe]
     from sourceSets.main.output
+    from sourceSets.client.output
+    mergeServiceFiles()
+    dependencies {
+        exclude(dependency('com.google.code.gson:gson:.*'))
+        exclude(dependency('org.slf4j:slf4j-api:.*'))
+    }
 }
+
 artifacts {
     archives devJar
 }
+
 publishing {
     publications {
         create("mavenJava", MavenPublication) {

@@ -1,21 +1,21 @@
+
 package net.johnseagull.figManagerClient;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.lang.Math.min;
-
-public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidget {
-    public List<String> widgets = new ArrayList<>();
-    private List<String> k = new ArrayList<>();
-    private List<String> v = new ArrayList<>();
+public class FigList extends AbstractWidget {
+    public List<String> widgets = new ArrayList();
+    public List<String> list = new ArrayList();
+    public Map<String, String> map = new HashMap();
+    public String msg;
     private int y = 0;
     private int X = 0;
     public int Y = 0;
@@ -24,108 +24,112 @@ public class FigList<T extends AbstractWidget & Renderable> extends AbstractWidg
     private int mx = 0;
     private int my = 0;
     public int columns = 1;
+    public boolean isMap = false;
     boolean hovered = false;
-    public FigList(int x, int yy, int width, int height, Component message, int c) {
-        super(x, yy, width, height, message);
-        Y = yy;
-        X = x;
-        columns = c;
-        FigManagerClient.clientLogger.info(y+"");
-    }
+    public int col1 = -16777216;
+    public int col2 = 285212672;
     boolean temp = false;
+
+    public FigList(int x, int yy, int width, int height, Component message, boolean isMap) {
+        super(x, yy, width, height, message);
+        this.Y = yy;
+        this.X = x;
+        this.isMap = isMap;
+    }
+
 
 
     @Override
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float a) {
+        int tempC1 = this.col1;
+        int tempC2 = this.col2;
+        FigBox bgTop = new FigBox(0, this.Y, this.width + 4, this.height / 2, tempC1, tempC2);
+        bgTop.renderWidget(graphics, mouseX, mouseY, a);
+        FigBox bgBottom = new FigBox(0, this.Y + this.height / 2, this.width + 4, this.height / 2, tempC2, tempC1);
+        bgBottom.renderWidget(graphics, mouseX, mouseY, a);
+        this.y = this.Y + this.offset + 5;
+        if (this.isMap) {
+            this.count = this.map.size();
+        } else {
+            this.count = this.list.size();
+        }
 
-        FigBox bgTop = new FigBox(0,Y,this.width+10,30,0xFF000000,0x11000000);
-        bgTop.renderWidget(graphics,mouseX,mouseY,a);
-        FigBox bgBottom = new FigBox(0,Y+this.height-30,this.width+10,30,0x11000000,0xFF000000);
-        bgBottom.renderWidget(graphics,mouseX,mouseY,a);
-
-        y = Y + offset +5;
-        count = k.size();
-        if (columns == 2) {
-            for (int i = 0; i < k.size(); i++) {
-
-                if (y >= this.Y && y <= this.Y + this.height) {
-                    graphics.drawString(Minecraft.getInstance().font, k.get(i), X, y, 0xFFFFFFFF);
-                    graphics.drawString(Minecraft.getInstance().font, v.get(i), X + this.width / 2, y, 0xFFFFFFFF);
+        if (this.isMap) {
+            for(Map.Entry<String, String> entry : this.map.entrySet()) {
+                if (this.y >= this.Y && this.y <= this.Y + this.height) {
+                    graphics.drawString(Minecraft.getInstance().font, (String)entry.getKey(), this.X, this.y, -1);
+                    graphics.drawString(Minecraft.getInstance().font, (String)entry.getValue(), this.X + this.width / 2, this.y, -1);
                 }
-                y+=22;
+
+                this.y += FigScreen.SPACING;
             }
         } else {
-            for (int i = 0; i < k.size(); i++) {
-
-                if (y >= this.Y && y <= this.Y + this.height) {
-                    graphics.drawString(Minecraft.getInstance().font, k.get(i), X, y, 0xFFFFFFFF);
+            for(String s : this.list) {
+                if (this.y >= this.Y && this.y <= this.Y + this.height) {
+                    graphics.drawString(Minecraft.getInstance().font, s, this.X, this.y, -1);
                 }
-                y+=22;
 
+                this.y += FigScreen.SPACING;
             }
         }
 
-        mx = mouseX;
-        my = mouseY;
-        FigBox thumb = new FigBox(
-                this.width - 8,
-                this.Y,
-                6,
-                20, 0xFF606060, 0xFF303030, 0xFF202020, 0xFF000000, 1);
-        int max = (count * 22) - this.height;
-        float progress = ((float) offset / max);
-        int trackSpace = (this.height) - thumb.height;
-        thumb.y = Math.min(this.Y - (int) (min(progress, 1.0f) * trackSpace),this.Y + this.height-thumb.height);
-        if (count > this.height/22) {
+        this.mx = mouseX;
+        this.my = mouseY;
+        FigBox thumb = new FigBox(this.width - 8, this.Y, 6, 20, -10461088, -13619152, -14671840, -16777216, 1);
+        int max = this.count * FigScreen.SPACING - this.height;
+        float progress = (float)this.offset / (float)max;
+        int trackSpace = this.height - thumb.height;
+        thumb.y = Math.min(this.Y - (int)(Math.min(progress, 1.0F) * (float)trackSpace), this.Y + this.height - thumb.height);
+        if (this.count > this.height / FigScreen.SPACING) {
             thumb.renderWidget(graphics, mouseX, mouseY, a);
         }
 
-        if( mx > this.X && mx < this.X + this.width && my > this.Y && my < this.Y + this.height) {
-            temp=true;
-        }
-        hovered = temp;
-
-    }
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput output) {
-
-    }
-    public boolean shift(double amount) {
-        boolean temp = true;
-        if (offset >= 0 && amount < 0) {
-            temp = false;
-
-        }
-        if (offset <= -count * 22 + this.height && amount > 0) {
-            temp = false;
-        }
-        if (offset < 0 && amount > 0.0) {
-            offset += (int) amount * 22;
-
-        }
-        if (offset > -count * 22 + this.height && amount < 0.0) {
-            offset += (int) amount * 22;
+        if (this.my > this.Y && this.my < this.Y + this.height) {
+            this.hovered = true;
         } else {
-            temp = false;
+            this.hovered = false;
         }
-        return !temp;
 
     }
 
-    public void addWidget(String key, String value) {
-        k.add(key);
-        v.add(value);
-    }
-    public void addWidget(String txt) {
-        k.add(txt);
-    }
-    public void clearWidgets() {
-        k.clear();
-        v.clear();
+    protected void updateWidgetNarration(NarrationElementOutput output) {
     }
 
+    public boolean shift(double amount) {
+        if (amount > (double)0.0F && this.offset >= 0) {
+            return false;
+        } else if (amount < (double)0.0F && this.offset <= -this.count * FigScreen.SPACING + this.height) {
+            return false;
+        } else {
+            if (amount > (double)0.0F) {
+                this.offset += (int)amount * FigScreen.SPACING;
+            } else {
+                this.offset += (int)amount * FigScreen.SPACING;
+            }
 
+            return true;
+        }
+    }
 
+    public void mapAdd(String key, String value) {
+        this.map.put(key, value);
+    }
 
+    public void mapSet(Map<String, String> map) {
+        this.clearEntries();
+        this.map.putAll(map);
+    }
+
+    public void mapRemove(String key) {
+        this.map.remove(key);
+    }
+
+    public void listAdd(String txt) {
+        this.list.add(txt);
+    }
+
+    public void clearEntries() {
+        this.map.clear();
+        this.list.clear();
+    }
 }
