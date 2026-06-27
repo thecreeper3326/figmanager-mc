@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
      * */
     public class DividerFig {
         public boolean multiline;
-        public String value;
+        public String value1;
         public String value2;
         public ChatFormatting color;
         public boolean bold = false;
@@ -19,12 +19,12 @@ import org.jspecify.annotations.Nullable;
         /**
          * Constructor for single-line labels
          *
-         * @param value The string to be displayed
+         * @param value1 The string to be displayed
          * @param color Color in the form of a ChatFormatting Object<br>
          * <code>bold, italic, underline</code> - Define extra formatting
          * */
-        public DividerFig(String value, @Nullable ChatFormatting color, boolean bold, boolean italic, boolean underline ) {
-            this.value = value;
+        public DividerFig(String value1, @Nullable ChatFormatting color, boolean bold, boolean italic, boolean underline ) {
+            this.value1 = value1;
             this.color = color;
             this.bold = bold;
             this.italic = italic;
@@ -34,13 +34,13 @@ import org.jspecify.annotations.Nullable;
         /**
          * Contructor for multi-line labels
          *
-         * @param value The string to be displayed on the top line
+         * @param value1 The string to be displayed on the top line
          * @param value2 The string to be displayed on the bottom line
          * @param color Color in the form of a ChatFormatting Object<br>
          * <code>bold, italic, underline</code> - Define extra formatting
          * */
-        public DividerFig(String value, String value2, @Nullable ChatFormatting color, boolean bold,  boolean italic, boolean underline ) {
-            this.value = value;
+        public DividerFig(String value1, String value2, @Nullable ChatFormatting color, boolean bold, boolean italic, boolean underline ) {
+            this.value1 = value1;
             this.value2 = value2;
             this.color = color;
             this.bold = bold;

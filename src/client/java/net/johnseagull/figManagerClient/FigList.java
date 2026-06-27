@@ -43,9 +43,9 @@ public class FigList extends AbstractWidget {
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         int tempC1 = this.col1;
         int tempC2 = this.col2;
-        FigBox bgTop = new FigBox(0, this.Y, this.width + 4, this.height / 2, tempC1, tempC2);
+        FigBox bgTop = new FigBox(this.X-5, this.Y, this.width+2, this.height / 2, tempC1, tempC2);
         bgTop.renderWidget(graphics, mouseX, mouseY, a);
-        FigBox bgBottom = new FigBox(0, this.Y + this.height / 2, this.width + 4, this.height / 2, tempC2, tempC1);
+        FigBox bgBottom = new FigBox(this.X-5, this.Y + this.height / 2, this.width+2, this.height / 2, tempC2, tempC1);
         bgBottom.renderWidget(graphics, mouseX, mouseY, a);
         this.y = this.Y + this.offset + 5;
         if (this.isMap) {
@@ -64,18 +64,20 @@ public class FigList extends AbstractWidget {
                 this.y += FigScreen.SPACING;
             }
         } else {
+            int l = 0;
             for(String s : this.list) {
-                if (this.y >= this.Y && this.y <= this.Y + this.height) {
-                    graphics.drawString(Minecraft.getInstance().font, s, this.X, this.y, -1);
-                }
 
+                if (this.y >= this.Y && this.y <= this.Y + this.height) {
+                    graphics.drawString(Minecraft.getInstance().font, l+" "+s, this.X, this.y, -1);
+                }
+                l++;
                 this.y += FigScreen.SPACING;
             }
         }
 
         this.mx = mouseX;
         this.my = mouseY;
-        FigBox thumb = new FigBox(this.width - 8, this.Y, 6, 20, -10461088, -13619152, -14671840, -16777216, 1);
+        FigBox thumb = new FigBox(this.X + this.width - 8, this.Y, 6, 20, -10461088, -13619152, -14671840, -16777216, 1);
         int max = this.count * FigScreen.SPACING - this.height;
         float progress = (float)this.offset / (float)max;
         int trackSpace = this.height - thumb.height;
@@ -84,7 +86,7 @@ public class FigList extends AbstractWidget {
             thumb.renderWidget(graphics, mouseX, mouseY, a);
         }
 
-        if (this.my > this.Y && this.my < this.Y + this.height) {
+        if (this.my > this.Y && this.my < this.Y + this.height && this.mx > this.X && this.mx < this.X + this.width) {
             this.hovered = true;
         } else {
             this.hovered = false;

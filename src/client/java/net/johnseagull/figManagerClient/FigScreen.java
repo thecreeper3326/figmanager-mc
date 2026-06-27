@@ -4,10 +4,8 @@ import com.google.common.collect.Lists;
 import java.awt.Color;
 import java.lang.reflect.Field;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.johnseagull.figManager.Fig;
 import net.johnseagull.figManager.FigGroup;
@@ -29,6 +27,8 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import org.apache.logging.log4j.core.util.ReflectionUtil;
+
+import static net.johnseagull.figManagerClient.FigManagerClient.clientLogger;
 
 public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
     private static final boolean CUSTOM_GRADIENT = true;
@@ -79,7 +79,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
             try {
                 this.save(this.coolListOfOptionWidgets);
             } catch (IllegalAccessException e) {
-                FigManagerClient.clientLogger.error(e.getMessage());
+                clientLogger.error(e.getMessage());
             }
 
         }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 2);
@@ -96,22 +96,191 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         Class<?> FIGCLASS = figs.getClass();
         this.fieldsInFigs = FIGCLASS.getDeclaredFields();
     }
+    public void addList(int x, int y, int width, String field, Object value) {
 
+        Fig.ListFig te = (Fig.ListFig)value;
+        if (te.rendered == false) {
+            te.rendered = true;
+            List<String> list = new ArrayList(te.value);
+            y += SPACING;
+
+
+            StringWidget label = new StringWidget(x, y, Math.max(50, width - 170), 20, Component.literal(te.name), this.font);
+            label.setTooltip(Tooltip.create(Component.literal(te.description)));
+            this.addRenderableWidget(label);
+
+            EditBox k = new EditBox(this.font, x, y + SPACING, width - 5, 20, Component.literal(field));
+            k.setTooltip(Tooltip.create(Component.literal(te.valueDesc)));
+            k.setMaxLength(1024);
+            FigList a = new FigList(x, y + SPACING * 2, width, te.dispLength * SPACING, Component.empty(), false);
+            a.col1 = PANEL_DARK_1;
+            a.col2 = PANEL_DARK_2;
+            a.clearEntries();
+            a.list.addAll(list);
+            a.active = false;
+            this.coolListOfOptionWidgets.add((T) a);
+            String var10001 = te.dataType;
+            a.setMessage(Component.literal(var10001 + field));
+
+            FigButton clear = new FigButton(x + width - 55, y + 2, 50, 16, Component.literal("Clear"), (button) -> {
+                list.clear();
+                a.clearEntries();
+            }, BAD_1, BAD_2, BORDER_1, BORDER_2, 1);
+            clear.inList = true;
+            clear.setTooltip(Tooltip.create(Component.literal("Clears the whole list, be careful!").withStyle(ChatFormatting.RED)));
+            clear.setTooltipDelay(Duration.ofMillis(200L));
+
+            FigButton remove = new FigButton(x + width - 105, y + 2, 50, 16, Component.literal("Remove"), (button) -> {
+                if (k.getValue().startsWith("INDEX=")) {
+                    try {
+                        list.remove(Integer.parseInt(k.getValue().substring("INDEX=".length())));
+                    } catch (NumberFormatException e) {
+                        this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid integer!")));
+                    }
+                }
+                list.remove(k.getValue());
+                a.clearEntries();
+                for (String entry : list) {
+                    a.listAdd(entry);
+                }
+            }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
+            remove.inList = true;
+
+            this.addRenderableWidget(clear);
+            this.addRenderableWidget(remove);
+            this.addRenderableWidget(k);
+
+            FigButton set = new FigButton(x + width - 155, y + 2, 50, 16, Component.literal("Set"), (button) -> {
+            }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
+            set.inList = true;
+            this.addRenderableWidget(set);
+
+            y += SPACING;
+            set.onPress = (button) -> {
+                if (!k.getValue().equals("")) {
+                    list.add(k.getValue());
+                    a.clearEntries();
+                    for (Object entry : list) {
+                        a.listAdd(entry.toString());
+                    }
+                }
+            };
+            y += te.dispLength * SPACING;
+            this.amountOfWidgetsOnScreen += te.dispLength + 2;
+            this.addRenderableWidget(a);
+        }
+    }
+    public void addMap(int x, int y, int width, String field, Object value) {
+        Fig.MapFig te = (Fig.MapFig)value;
+        if (!te.rendered) {
+            te.rendered = true;
+            Map<String, String> map = new HashMap(te.value);
+            y += SPACING;
+
+
+
+            StringWidget label = new StringWidget(x, y, Math.max(50, width - 170), 20, Component.literal(te.name), this.font);
+            label.setTooltip(Tooltip.create(Component.literal(te.description)));
+            this.addRenderableWidget(label);
+
+            EditBox k = new EditBox(this.font, x, y + SPACING, (width) / 2 - 5, 20, Component.literal(field));
+            k.setTooltip(Tooltip.create(Component.literal(te.keyDesc)));
+            k.setMaxLength(1024);
+            EditBox vvv = new EditBox(this.font, x + width / 2, y + SPACING, (width) / 2 - 5, 20, Component.literal(field));
+            vvv.setTooltip(Tooltip.create(Component.literal(te.valueDesc)));
+            vvv.setMaxLength(1024);
+            FigList a = new FigList(x, y + SPACING * 2, width, te.dispLength * SPACING, Component.empty(), true);
+            a.col1 = PANEL_DARK_1;
+            a.col2 = PANEL_DARK_2;
+            a.clearEntries();
+            a.map.putAll(map);
+            a.active = false;
+            this.coolListOfOptionWidgets.add((T) a);
+            String var56 = te.dataType;
+            a.setMessage(Component.literal(var56 + field));
+
+            FigButton clear = new FigButton(x + width - 55, y + 2, 50, 16, Component.literal("Clear"), (button) -> {
+                map.clear();
+                a.clearEntries();
+            }, BAD_1, BAD_2, BORDER_1, BORDER_2, 1);
+            clear.inList = true;
+            clear.setTooltip(Tooltip.create(Component.literal("Clears the whole list, be careful!").withStyle(ChatFormatting.RED)));
+            clear.setTooltipDelay(Duration.ofMillis(200L));
+
+            FigButton remove = new FigButton(x + width - 105, y + 2, 50, 16, Component.literal("Remove"), (button) -> {
+                map.remove(k.getValue());
+                a.clearEntries();
+                a.map.putAll(map);
+            }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
+            remove.inList = true;
+
+            this.addRenderableWidget(clear);
+            this.addRenderableWidget(remove);
+            this.addRenderableWidget(k);
+            this.addRenderableWidget(vvv);
+
+            FigButton set = new FigButton(x + width - 155, y + 2, 50, 16, Component.literal("Set"), (button) -> {}, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
+            set.inList = true;
+            this.addRenderableWidget(set);
+
+            y += SPACING;
+            set.onPress = (button) -> {
+                if (!k.getValue().equals("")) {
+                    if (te.itemType.equals("string")) {
+                        a.mapAdd(k.getValue(), vvv.getValue());
+                    }
+                    if (te.itemType.equals("int")) {
+                        try {
+                            int tempV = Integer.parseInt(vvv.getValue());
+                            a.mapAdd(k.getValue(), String.valueOf(tempV));
+                        } catch (NumberFormatException var8) {
+                            this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid integer!")));
+                        }
+                    }
+                    if (te.itemType.equals("float")) {
+                        try {
+                            float tempV = Float.parseFloat(vvv.getValue());
+                            a.mapAdd(k.getValue(), String.valueOf(tempV));
+                        } catch (NumberFormatException var7) {
+                            this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid float!")));
+                        }
+                    }
+                    if (te.itemType.equals("boolean")) {
+                        if (!vvv.getValue().equalsIgnoreCase("true") && !vvv.getValue().equalsIgnoreCase("false")) {
+                            this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid boolean!")));
+                        } else {
+                            a.mapAdd(k.getValue(), vvv.getValue().toLowerCase());
+                        }
+                    }
+                }
+            };
+            y += te.dispLength * SPACING;
+            this.amountOfWidgetsOnScreen += te.dispLength + 2;
+            this.addRenderableWidget(a);
+        }
+    }
     public void addOptions() throws IllegalAccessException {
         int y = HEADER;
         int x = 5;
-
+        boolean hasCollection = false;
         for(Field field : this.fieldsInFigs) {
             field.setAccessible(true);
             Object value = field.get(FigManager.FIGS);
             if (!field.getName().equals("instance")) {
                 if (value instanceof FigGroup) {
+
+                    hasCollection = false;
                     FigGroup t = (FigGroup)value;
                     int c = t.columns;
                     int w = (this.width - c * 5) / c;
                     int widthOfTheWidgetw = (int)((float)w * t.ratio);
                     int wc = 1;
-
+                    int h = SPACING;
+                    int hh = 1;
+                    if (!t.hL) {
+                        h = SPACING*2;
+                        hh = 2;
+                    }
                     for(String s : t.value) {
                         int wx = 5 + (wc - 1) * w;
 
@@ -120,21 +289,56 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                                 try {
                                     Field v = FigManager.FIGS.getClass().getField(s);
                                     Object vv = v.get(FigManager.FIGS);
-                                    if (vv instanceof Fig) {
-                                        Fig k = (Fig)vv;
-                                        StringWidget label;
-                                        if (t.hL) {
-                                            label = new StringWidget(wx + widthOfTheWidgetw + 5, y + SPACING, w - widthOfTheWidgetw - 5, 20, Component.literal(k.name), this.font);
-                                        } else {
-                                            label = new StringWidget(wx, y + SPACING, w - 5, 20, Component.literal(k.name), this.font);
+                                    if (vv instanceof Fig.CollectionFig vvvv) {
+                                        h = SPACING*vvvv.dispLength;
+                                        hh = vvvv.dispLength;
+                                        hasCollection = true;
+
+                                    }
+                                    if (vv instanceof Fig.ListFig vvvv) {
+                                        if (!vvvv.rendered) {
+                                            if (!t.hL) {
+                                                addList(wx, y, widthOfTheWidgetw-5, f.getName(), vvvv);
+                                            } else {
+                                                addList(wx, y, widthOfTheWidgetw-5, f.getName(), vvvv);
+                                            }
+                                            vvvv.rendered = true;
+                                            vvvv.inGroup = true;
                                         }
 
-                                        label.setTooltip(Tooltip.create(Component.literal(k.description)));
-                                        this.addRenderableWidget(label);
-                                        this.addWidget(f.getName(), k, wx, y + SPACING, widthOfTheWidgetw, 20);
+                                    }
+
+                                    if (vv instanceof Fig.MapFig vvvv) {
+                                        if (!vvvv.rendered) {
+                                            if (!t.hL) {
+                                                addMap(wx, y, widthOfTheWidgetw-5, f.getName(), vvvv);
+                                            } else {
+                                                addMap(wx, y, widthOfTheWidgetw-5, f.getName(), vvvv);
+                                            }
+                                            vvvv.rendered = true;
+                                            vvvv.inGroup = true;
+                                        }
+
+                                    }
+
+                                    if (vv instanceof Fig) {
+                                        if (!(vv instanceof Fig.CollectionFig)) {
+                                            Fig k = (Fig) vv;
+                                            StringWidget label;
+                                            if (t.hL) {
+                                                this.addWidget(f.getName(), k, wx, y + SPACING, widthOfTheWidgetw-2, 20);
+                                                label = new StringWidget(wx + widthOfTheWidgetw + 5, y + SPACING, w - widthOfTheWidgetw - 5, 20, Component.literal(k.name), this.font);
+                                            } else {
+                                                this.addWidget(f.getName(), k, wx, y + SPACING + SPACING, widthOfTheWidgetw-2, 20);
+                                                label = new StringWidget(wx, y + SPACING, w - 5, 20, Component.literal(k.name), this.font);
+                                            }
+
+                                            label.setTooltip(Tooltip.create(Component.literal(k.description)));
+                                            this.addRenderableWidget(label);
+                                        }
                                     }
                                 } catch (Exception e) {
-                                    FigManagerClient.clientLogger.debug(e.getMessage());
+                                    clientLogger.debug(e.getMessage());
                                 }
                             }
                         }
@@ -142,22 +346,28 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                         ++wc;
                         if (!t.hL) {
                             if (wc > c) {
-                                y += 44;
+
+                                y += h;
                                 wc = 1;
-                                this.amountOfWidgetsOnScreen += 2;
-                                this.rows += 2;
+                                this.amountOfWidgetsOnScreen += hh;
+                                this.rows += hh;
                             }
                         } else if (wc > c) {
-                            y += SPACING;
+
+                            y += h;
                             wc = 1;
-                            ++this.amountOfWidgetsOnScreen;
-                            ++this.rows;
+                            this.amountOfWidgetsOnScreen+= hh;
+                            this.rows+= hh;
                         }
                     }
 
                     if (wc > 1) {
                         y += SPACING;
-                        ++this.amountOfWidgetsOnScreen;
+                        this.amountOfWidgetsOnScreen++;
+                    }
+                    if (hasCollection) {
+                        y+= SPACING*2;
+                        this.amountOfWidgetsOnScreen+=2;
                     }
                 }
 
@@ -168,13 +378,13 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                         Style style = Style.EMPTY;
                         style = style.withColor(t.color).withBold(t.bold).withItalic(t.italic).withUnderlined(t.underline);
                         if (!t.multiline) {
-                            StringWidget label = new StringWidget(x, y, this.width - 30, 20, Component.literal(t.value).withStyle(style), this.font);
+                            StringWidget label = new StringWidget(x, y, this.width - 30, 20, Component.literal(t.value1).withStyle(style), this.font);
                             label.active = false;
                             this.addRenderableWidget(label);
                         }
 
                         if (t.multiline) {
-                            StringWidget label = new StringWidget(x, y - 5, this.width - 30, 20, Component.literal(t.value).withStyle(style), this.font);
+                            StringWidget label = new StringWidget(x, y - 5, this.width - 30, 20, Component.literal(t.value1).withStyle(style), this.font);
                             label.active = false;
                             this.addRenderableWidget(label);
                             StringWidget label2 = new StringWidget(x, y + 5, this.width - 30, 20, Component.literal(t.value2).withStyle(style), this.font);
@@ -186,152 +396,22 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                     }
                 }
 
-                if (value instanceof Fig.ListFig) {
-                    Fig.ListFig t = (Fig.ListFig)value;
-                    t.rendered = true;
-                    List<String> list = new ArrayList(t.value);
-                    y += SPACING;
-                    FigBox bg = new FigBox(0, y, this.width, 44 + t.dispLength * SPACING, PANEL_1, PANEL_2);
-                    bg.active = false;
-                    bg.inList = true;
-                    StringWidget label = new StringWidget(x, y, this.width - 170, 20, Component.literal(t.name), this.font);
-                    label.setTooltip(Tooltip.create(Component.literal(t.description)));
-                    this.addRenderableWidget(label);
-                    EditBox k = new EditBox(this.font, x, y + SPACING, this.width - 14 - 5, 20, Component.literal(field.getName()));
-                    k.setTooltip(Tooltip.create(Component.literal(t.valueDesc)));
-                    FigList a = new FigList(x, y + SPACING * 2, this.width - 14, t.dispLength * SPACING, Component.empty(), false);
-                    a.col1 = PANEL_DARK_1;
-                    a.col2 = PANEL_DARK_2;
-                    a.clearEntries();
-                    a.list.addAll(list);
-                    a.active = false;
-                    this.coolListOfOptionWidgets.add((T) a);
-                    String var10001 = t.dataType;
-                    a.setMessage(Component.literal(var10001 + field.getName()));
-                    FigButton clear = new FigButton(this.width - 65, y + 2, 50, 16, Component.literal("Clear"), (button) -> {
-                        list.clear();
-                        a.clearEntries();
-                    }, BAD_1, BAD_2, BORDER_1, BORDER_2, 1);
-                    clear.inList = true;
-                    clear.setTooltip(Tooltip.create(Component.literal("Clears the whole list, be careful!").withStyle(ChatFormatting.RED)));
-                    clear.setTooltipDelay(Duration.ofMillis(200L));
-                    FigButton remove = new FigButton(this.width - 115, y + 2, 50, 16, Component.literal("Remove"), (button) -> {
-                        list.remove(k.getValue());
-                        a.clearEntries();
+                if (value instanceof Fig.ListFig t) {
+                    if (!t.rendered) {
+                        addList(x, y, this.width - 14, field.getName(), value);
 
-                        for(String entry : list) {
-                            a.listAdd(entry);
-                        }
-
-                    }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
-                    remove.inList = true;
-                    this.addRenderableWidget(clear);
-                    this.addRenderableWidget(remove);
-                    this.addRenderableWidget(k);
-                    FigButton set = new FigButton(this.width - 165, y + 2, 50, 16, Component.literal("Set"), (button) -> {
-                    }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
-                    set.inList = true;
-                    this.addRenderableWidget(set);
-                    y += SPACING;
-                    set.onPress = (button) -> {
-                        if (!k.getValue().equals("")) {
-                            list.add(k.getValue());
-                            a.clearEntries();
-
-                            for(Object entry : list) {
-                                a.listAdd(entry.toString());
-                            }
-                        }
-
-                    };
-                    y += t.dispLength * SPACING;
-                    this.amountOfWidgetsOnScreen += t.dispLength + 2;
-                    this.addRenderableWidget(a);
+                        y += (t.dispLength + 2) * SPACING;
+                        this.amountOfWidgetsOnScreen += t.dispLength + 2;
+                    }
                 }
 
-                if (value instanceof Fig.MapFig) {
-                    Fig.MapFig t = (Fig.MapFig)value;
-                    t.rendered = true;
-                    Map<String, String> map = new HashMap(t.value);
-                    y += SPACING;
-                    FigBox bg = new FigBox(0, y, this.width, 44 + t.dispLength * SPACING, PANEL_1, PANEL_2);
-                    bg.active = false;
-                    bg.inList = true;
-                    StringWidget label = new StringWidget(x, y, this.width - 170, 20, Component.literal(t.name), this.font);
-                    label.setTooltip(Tooltip.create(Component.literal(t.description)));
-                    this.addRenderableWidget(label);
-                    EditBox k = new EditBox(this.font, x, y + SPACING, (this.width - 14) / 2 - 5, 20, Component.literal(field.getName()));
-                    k.setTooltip(Tooltip.create(Component.literal(t.keyDesc)));
-                    EditBox v = new EditBox(this.font, x + (this.width - 14) / 2, y + SPACING, (this.width - 14) / 2 - 5, 20, Component.literal(field.getName()));
-                    v.setTooltip(Tooltip.create(Component.literal(t.valueDesc)));
-                    FigList a = new FigList(x, y + SPACING * 2, this.width - 14, t.dispLength * SPACING, Component.empty(), true);
-                    a.col1 = PANEL_DARK_1;
-                    a.col2 = PANEL_DARK_2;
-                    a.clearEntries();
-                    a.map.putAll(map);
-                    a.active = false;
-                    this.coolListOfOptionWidgets.add((T) a);
-                    String var56 = t.dataType;
-                    a.setMessage(Component.literal(var56 + field.getName()));
-                    FigButton clear = new FigButton(this.width - 65, y + 2, 50, 16, Component.literal("Clear"), (button) -> {
-                        map.clear();
-                        a.clearEntries();
-                    }, BAD_1, BAD_2, BORDER_1, BORDER_2, 1);
-                    clear.inList = true;
-                    clear.setTooltip(Tooltip.create(Component.literal("Clears the whole list, be careful!").withStyle(ChatFormatting.RED)));
-                    clear.setTooltipDelay(Duration.ofMillis(200L));
-                    FigButton remove = new FigButton(this.width - 115, y + 2, 50, 16, Component.literal("Remove"), (button) -> {
-                        map.remove(k.getValue());
-                        a.clearEntries();
-                        a.map.putAll(map);
-                    }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
-                    remove.inList = true;
-                    this.addRenderableWidget(clear);
-                    this.addRenderableWidget(remove);
-                    this.addRenderableWidget(k);
-                    this.addRenderableWidget(v);
-                    FigButton set = new FigButton(this.width - 165, y + 2, 50, 16, Component.literal("Set"), (button) -> {
-                    }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);
-                    set.inList = true;
-                    this.addRenderableWidget(set);
-                    y += SPACING;
-                    set.onPress = (button) -> {
-                        if (!k.getValue().equals("")) {
-                            if (t.itemType.equals("string")) {
-                                a.mapAdd(k.getValue(), v.getValue());
-                            }
+                if (value instanceof Fig.MapFig t) {
+                    if (!t.rendered) {
+                        addMap(x, y, this.width - 14, field.getName(), value);
 
-                            if (t.itemType.equals("int")) {
-                                try {
-                                    int tempV = Integer.parseInt(v.getValue());
-                                    a.mapAdd(k.getValue(), String.valueOf(tempV));
-                                } catch (NumberFormatException var8) {
-                                    this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid integer!")));
-                                }
-                            }
-
-                            if (t.itemType.equals("float")) {
-                                try {
-                                    float tempV = Float.parseFloat(v.getValue());
-                                    a.mapAdd(k.getValue(), String.valueOf(tempV));
-                                } catch (NumberFormatException var7) {
-                                    this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid float!")));
-                                }
-                            }
-
-                            if (t.itemType.equals("boolean")) {
-                                if (!v.getValue().equalsIgnoreCase("true") && !v.getValue().equalsIgnoreCase("false")) {
-                                    this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid boolean!")));
-                                } else {
-                                    a.mapAdd(k.getValue(), v.getValue().toLowerCase());
-                                }
-                            }
-                        }
-
-                    };
-                    y += t.dispLength * SPACING;
-                    this.amountOfWidgetsOnScreen += t.dispLength + 2;
-                    this.addRenderableWidget(a);
+                        y += (t.dispLength + 2) * SPACING;
+                        this.amountOfWidgetsOnScreen += t.dispLength + 2;
+                    }
                 }
 
                 if (value instanceof Fig) {
@@ -345,7 +425,10 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                 }
             }
         }
+        if (hasCollection) {
+            clientLogger.warn("List or map datatype used in group; may experience difficulty using interface at lower resolutions/higher gui scales");
 
+        }
     }
 
     public void setResponder(EditBox box, String type, Object min, Object max, String name) {
@@ -564,10 +647,10 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                     this.onClose();
                 } else {
                     Minecraft.getInstance().player.displayClientMessage(Component.literal(errorCount + " options failed to process:").withStyle(new ChatFormatting[]{ChatFormatting.RED, ChatFormatting.BOLD}),false);
-                    FigManagerClient.clientLogger.error(errorCount + " errors occured:");
+                    clientLogger.error(errorCount + " errors occured:");
 
                     for(String error : errors) {
-                        FigManagerClient.clientLogger.error(error);
+                        clientLogger.error(error);
                     }
 
                     Minecraft.getInstance().player.displayClientMessage(Component.literal(""),false);
@@ -613,7 +696,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                     f.inGroup = false;
                 }
             } catch (Exception var10) {
-                FigManagerClient.clientLogger.error("Resetting fig render states failed, may fail to render on next open.");
+                clientLogger.error("Resetting fig render states failed, may fail to render on next open.");
             }
         }
 
@@ -655,7 +738,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
             try {
                 this.save(this.coolListOfOptionWidgets);
             } catch (IllegalAccessException e) {
-                FigManagerClient.clientLogger.error(e.getMessage());
+                clientLogger.error(e.getMessage());
             }
 
         }, LIGHT_1, LIGHT_2, BORDER_1, BORDER_2, 1);

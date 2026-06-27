@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class FigManagerClient {
     public static float ow = 0;
     public static boolean absoluteWidth = false;
-    public static Logger clientLogger = LoggerFactory.getLogger("CreeperDev ConFIG Manager Client");
+    public static Logger clientLogger = LoggerFactory.getLogger("FigManagerMC/client");
     /**
      * Initializer for the client.
      * Prepares packets and registers GUI
