@@ -35,7 +35,7 @@ public class FigManagerClient {
             dispatcher.register(ClientCommands.literal(FigManager.name+"_config").executes(context -> {
                 Minecraft client = context.getSource().getClient();
                 client.execute(() -> {
-                    client.setScreen(new FigScreen<>(Component.literal(FigManager.name+"_config"),optionWidth,figs, null,true));
+                    client.setScreenAndShow(new FigScreen<>(Component.literal(FigManager.name+"_config"),optionWidth,figs, null,true));
                 });
                 return 1;
             }).requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR)));
