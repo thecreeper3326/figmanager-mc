@@ -306,7 +306,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                                     int tempV = Integer.parseInt(v.getValue());
                                     a.mapAdd(k.getValue(), String.valueOf(tempV));
                                 } catch (NumberFormatException var8) {
-                                    this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid integer!")));
+                                    this.minecraft.gui.toastManager().addToast(new SystemToast(SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid integer!")));
                                 }
                             }
 
@@ -315,13 +315,13 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                                     float tempV = Float.parseFloat(v.getValue());
                                     a.mapAdd(k.getValue(), String.valueOf(tempV));
                                 } catch (NumberFormatException var7) {
-                                    this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid float!")));
+                                    this.minecraft.gui.toastManager().addToast(new SystemToast(SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid float!")));
                                 }
                             }
 
                             if (t.itemType.equals("boolean")) {
                                 if (!v.getValue().equalsIgnoreCase("true") && !v.getValue().equalsIgnoreCase("false")) {
-                                    this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid boolean!")));
+                                    this.minecraft.gui.toastManager().addToast(new SystemToast(SystemToastId.PERIODIC_NOTIFICATION, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty("Not a valid boolean!")));
                                 } else {
                                     a.mapAdd(k.getValue(), v.getValue().toLowerCase());
                                 }
@@ -556,7 +556,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         List<String> errors = (List)newFigs.get(2);
         if (this.HAS_SERVER) {
             if (errorCount != 0) {
-                this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.NARRATOR_TOGGLE, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty(errorCount + " errors occurred, see chat/logs")));
+                this.minecraft.gui.toastManager().addToast(new SystemToast(SystemToastId.NARRATOR_TOGGLE, Component.literal("Error").withStyle(ChatFormatting.RED), Component.nullToEmpty(errorCount + " errors occurred, see chat/logs")));
             }
 
             try {
@@ -585,7 +585,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
                 FigManager.save(FigManager.name);
             } catch (NullPointerException | IllegalStateException var14) {
                 if (errorCount != 0) {
-                    this.minecraft.getToastManager().addToast(SystemToast.multiline(this.minecraft, SystemToastId.NARRATOR_TOGGLE, Component.literal("Warning").withStyle(ChatFormatting.YELLOW), Component.nullToEmpty("Saved valid figs, invalid ones were reset")));
+                    this.minecraft.gui.toastManager().addToast(new SystemToast(SystemToastId.NARRATOR_TOGGLE, Component.literal("Warning").withStyle(ChatFormatting.YELLOW), Component.nullToEmpty("Saved valid figs, invalid ones were reset")));
                 } else {
                     this.onClose();
                 }
@@ -755,7 +755,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
     }
 
     public void onClose() {
-        this.minecraft.setScreen(this.parent);
+        this.minecraft.setScreenAndShow(this.parent);
     }
 
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
