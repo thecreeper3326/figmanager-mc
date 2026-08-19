@@ -1,6 +1,6 @@
-package net.johnseagull.figManagerMC;
+package johnseagull.figManagerMC;
 
-import net.johnseagull.figManager.FigManager;
+import johnseagull.figManager.FigManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

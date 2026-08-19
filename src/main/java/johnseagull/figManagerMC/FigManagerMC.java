@@ -1,9 +1,9 @@
-package net.johnseagull.figManagerMC;
+package johnseagull.figManagerMC;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.johnseagull.figManager.FigManager;
+import johnseagull.figManager.FigManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

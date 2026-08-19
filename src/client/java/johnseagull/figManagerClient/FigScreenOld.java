@@ -1,30 +1,6 @@
-package net.johnseagull.figManagerClient;
+package johnseagull.figManagerClient;
 
 
-import com.google.common.collect.Lists;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.johnseagull.figManager.Fig;
-import net.johnseagull.figManager.FigGroup;
-import net.johnseagull.figManager.FigManager;
-import net.johnseagull.figManagerMC.DividerFig;
-import net.johnseagull.figManagerMC.FigPacket;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.*;
-import net.minecraft.client.gui.components.toasts.SystemToast;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-
-import java.lang.reflect.Field;
-import java.time.Duration;
-import java.util.*;
-
-import static java.lang.Math.*;
-import static net.johnseagull.figManagerClient.FigManagerClient.clientLogger;
-import static org.apache.logging.log4j.core.util.ReflectionUtil.setFieldValue;
 @SuppressWarnings("unchecked")
 public class FigScreenOld {
     /*

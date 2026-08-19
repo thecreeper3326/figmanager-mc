@@ -36,7 +36,7 @@ tasks.named('shadowJar', ShadowJar) {
         project.configurations.shadowMe.collect { it.isDirectory() ? it : zipTree(it) }
     }
     archiveClassifier = 's'
-    relocate 'net.johnseagull.figManager', "net.johnseagull.${project.archives_base_name}.libs.figManager"
+    relocate 'johnseagull.figManager', "johnseagull.${project.archives_base_name}.libs.figManager"
     mergeServiceFiles()
 }
 version = project.mod_version
@@ -63,7 +63,7 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-    api "net.johnseagull:figmanager:${project.fig_version}"
+    api "johnseagull:figmanager:${project.fig_version}"
 }
 processResources {
     inputs.property "version", project.version
