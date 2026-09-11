@@ -1,5 +1,5 @@
 
-package net.johnseagull.figManagerClient;
+package johnseagull.figManagerClient;
 
 import java.util.ArrayList;
 import java.util.HashMap;

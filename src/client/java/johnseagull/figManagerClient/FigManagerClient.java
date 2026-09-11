@@ -1,7 +1,7 @@
-package net.johnseagull.figManagerClient;
+package johnseagull.figManagerClient;
 
-import net.johnseagull.figManager.FigManager;
-import net.johnseagull.figManagerMC.FigPacket;
+import johnseagull.figManager.FigManager;
+import johnseagull.figManagerMC.FigPacket;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;

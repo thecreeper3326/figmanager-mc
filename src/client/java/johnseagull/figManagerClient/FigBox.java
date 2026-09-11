@@ -1,4 +1,4 @@
-package net.johnseagull.figManagerClient;
+package johnseagull.figManagerClient;
 
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import net.minecraft.client.gui.GuiGraphicsExtractor;

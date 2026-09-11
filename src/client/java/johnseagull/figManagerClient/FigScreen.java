@@ -1,4 +1,4 @@
-package net.johnseagull.figManagerClient;
+package johnseagull.figManagerClient;
 
 import com.google.common.collect.Lists;
 import java.awt.Color;
@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.johnseagull.figManager.Fig;
-import net.johnseagull.figManager.FigGroup;
-import net.johnseagull.figManager.FigManager;
-import net.johnseagull.figManagerMC.DividerFig;
-import net.johnseagull.figManagerMC.FigPacket;
+import johnseagull.figManager.Fig;
+import johnseagull.figManager.FigGroup;
+import johnseagull.figManager.FigManager;
+import johnseagull.figManagerMC.DividerFig;
+import johnseagull.figManagerMC.FigPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -104,7 +104,7 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         for(Field field : this.fieldsInFigs) {
             field.setAccessible(true);
             Object value = field.get(FigManager.FIGS);
-            if (!field.getName().equals("instance")) {
+            if (!field.getName().equals("instance") && !field.getName().startsWith("fmc_H_")) {
                 if (value instanceof FigGroup) {
                     FigGroup t = (FigGroup)value;
                     int c = t.columns;
