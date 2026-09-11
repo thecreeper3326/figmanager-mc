@@ -104,7 +104,12 @@ public class FigScreen<T extends AbstractWidget & Renderable> extends Screen {
         for(Field field : this.fieldsInFigs) {
             field.setAccessible(true);
             Object value = field.get(FigManager.FIGS);
-            if (!field.getName().equals("instance") && !field.getName().startsWith("fmc_H_")) {
+            if (!field.getName().equals("instance")) {
+                if (field.getName().startsWith("fmc_H_")) {
+                    Fig t = (Fig)value;
+                        this.addWidget(field.getName(), t, x, y, this.widthOfTheWidget, 0);
+                        continue;
+                }
                 if (value instanceof FigGroup) {
                     FigGroup t = (FigGroup)value;
                     int c = t.columns;
